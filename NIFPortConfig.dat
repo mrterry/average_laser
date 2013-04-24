@@ -1,0 +1,133 @@
+!
+!======================================================================
+! \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+!======================================================================
+!
+! File Format for beam port configuration [read in as a 1D stream].     
+!
+!   n           	: number of data segments; variable due to number of rings.
+!                       : note: n = 11 + nRings OR n = 12 + nRings where an optional
+!                       :       parameter indicates whether super-Gaussian radii are relative
+!                       :       to the target radius or absolute numbers given in microns.
+!   m(1..n)     	: number of data points in each segment.
+!                       : note: m(1:4) should all be equal to the number of ports.
+!                       : note: m(n-6:n) should all be equal to number of rings.
+!   
+!   Theta[1..m(1)] 	: Theta angles for each beam; in degrees.
+!   Phi[1..m(2)]    	: Theta angles for each beam; in degrees.
+!   
+!   ThetaRP[1..m(3)]    : RePointed Theta angles for each beam; in degrees.
+!   PhiRP[1..m(4)]	: RePointed Theta angles for each beam; in degrees.
+!
+!   Rng[1,1..m(5)]	: Beam index in Rng#1.
+!   Rng[2,1..m(6)]	: Beam index in Rng#2.
+!       .
+!       .
+!       .
+!   Rng[m(n),1..m(5+m(n)-1)]    : Beam index in Rng#m(n); variable length.
+!
+!
+!   {RadiiInterp}       : {optional} specifies the interpretation of the super-Gaussian radii:
+!                       :       relative to the initial target radius or 
+!                       :       absolute numbers given in microns.
+!                       :  0 ==> radii are given as a relative multiplier of the target radius; 
+!                       :        represent the 5% intensity point. [default; when omitted]
+!                       :  1 ==> radii are given as a relative multiplier of the target radius; 
+!                       :        represent the 1/e intensity point. 
+!                       :  2 ==> radii are given in microns; represent the 5% intensity point.
+!                       :  3 ==> radii are given in microns; represent the 1/e intensity point.
+!
+!   sg[1..m(n)]         : superGaussian order for each ring.
+!   Radius[1..m(n)]     : absolute/relative radius of the super-Gaussian for each ring; 
+!                       : if absolute ==> microns.
+!                       : if relative ==> multiplier of the intital target's radius 
+!                       :                 of the 5% intensity value.
+!   ellip([1..m(n)]   	: ellipticity for each ring.
+!
+!   amp2[1..m(n)]	: relative amplitude of inner ellipse for each ring.
+!   sg2[1..m(n)]     	: superGaussian order for each ring.
+!   offset2[1..m(n)] 	: absolute/relative offset for each ring; 
+!                       : if absolute ==> microns.
+!                       : if relative ==> multiplier of the intital target's radius
+!                       :                 of the 5% intensity value.
+!   ellip2([1..m(n)]  	: ellipticity for each ring.
+!
+!======================================================================
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+!======================================================================
+!
+
+16
+48 48 48 48 8 8 8 8 16 5 5 5 5 5 5 5 
+
+   23.500    23.500    23.500    23.500
+   44.500    44.500    44.500    44.500
+   44.500    44.500    44.500    44.500
+   30.000    50.000    50.000    30.000
+   50.000    50.000    30.000    50.000
+   50.000    30.000    50.000    50.000
+  130.000   130.000   150.000   130.000
+  130.000   150.000   130.000   130.000
+  150.000   130.000   130.000   150.000
+  135.500   135.500   135.500   135.500
+  135.500   135.500   135.500   135.500
+  156.500   156.500   156.500   156.500
+
+
+   78.750   168.750   258.750   348.750
+   16.293    62.455   106.295   152.455
+  196.293   242.455   286.295   332.455
+   34.330    39.670    84.375   123.750
+  129.380   174.375   214.330   219.670
+  264.375   303.750   309.380   354.375
+    5.625    50.620    56.250    95.625
+  140.330   145.670   185.625   230.620
+  236.250   275.625   320.330   325.670
+   27.545    73.705   117.545   163.707
+  207.545   253.705   297.545   343.707
+   11.250   101.250   191.250   281.250
+
+
+   24.941    24.941    24.941    24.941
+   85.480    45.004    85.480    45.004
+   85.480    45.004    85.480    45.004
+   45.004    85.480    85.480    45.004
+   85.480    85.480    45.004    85.480
+   85.480    45.004    85.480    85.480
+   94.520    94.520   134.996    94.520
+   94.520   134.996    94.520    94.520
+  134.996    94.520    94.520   134.996
+  134.996    94.520   134.996    94.520
+  134.996    94.520   134.996    94.520
+  155.059   155.059   155.059   155.059
+
+
+   78.750   168.750   258.750   348.750
+   24.375    62.455   114.375   152.455
+  204.375   242.455   294.375   332.455
+   16.293    54.375    84.375   106.295
+  144.375   174.375   196.293   234.375
+  264.375   286.295   324.375   354.375
+    5.625    35.625    73.705    95.625
+  125.625   163.707   185.625   215.625
+  253.705   275.625   305.625   343.707
+   27.545    65.625   117.545   155.625
+  207.545   245.625   297.545   335.625
+   11.250   101.250   191.250   281.250
+
+
+  1   2   3   4  45  46  47  48
+  6   8  10  12  37  39  41  43
+ 13  16  19  22  27  30  33  36
+  5   7   9  11  38  40  42  44
+ 14  15  17  18  20  21  23  24
+ 25  26  28  29  31  32  34  35
+
+
+   3.00    2.20    2.20    2.20    2.20
+   1.00    1.00    1.00    1.00    1.00
+   1.00    1.00    1.00    1.00    1.00
+   0.00    0.00    0.00    0.30    0.30
+   0.00    0.00    0.00    2.20    2.20
+   0.00    0.00    0.00    0.15    0.15
+   0.00    0.00    0.00    3.00    3.00
