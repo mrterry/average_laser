@@ -179,25 +179,27 @@ def get_hist(r0, R, nrays, path, stride=10000):
     with open(path) as f:
         pointings, rings_top, rings_bot, spots = get_pointing(f, r0)
 
+    nbins = 200
+    bins = np.linspace(0, np.pi/2, nbins+1)
+    bins = np.cos(bins)[::-1]
+    theta_hist = IncrementalHist(bins, 10*nrays)
 
-    cos_theta_bins = np.cos(np.linspace(0, np.pi/2, 100))[::-1]
-    cos_theta_bins[0] = 0.
-    cos_theta_bins[-1] = 1.
-    print cos_theta_bins
-    theta_hist = np.zeros(len(cos_theta_bins)-1)
+    deg2rad = np.pi/180.
 
-    for spot, top_beam_ids, bot_beam_ids in zip(spots, rings_top, rings_bot):
-        XYI = get_beam_pattern(r0, spot)
+    for spot, top_beam_ids, bot_beam_ids in zip(spots[:1], rings_top, rings_bot):
+        print spot
+        XYI = pdd_beam_pattern(r0, spot)
         for beam in chain(pointings[top_beam_ids], pointings[bot_beam_ids]):
-            lens = xyz(R, beam['theta'], beam['phi'])
-            focus = xyz(r0, beam['theta_rp'], beam['phi_rp'])
+            #        for beam in pointings[top_beam_ids]:
+            lens_rtp = R, beam['theta']*deg2rad, beam['phi']*deg2rad
+            focus_rtp = r0, beam['theta_rp']*deg2rad, beam['phi_rp']*deg2rad
 
             for step in iter_step_sizes(nrays, stride):
-                p, q = get_pq(lens, focus, XYI, nrays)
+                p, q = get_pq(lens_rtp, focus_rtp, XYI, step)
                 cos_t = cost(p, q, r0)
-                b, hist = np.histogram(cos_t, bins=cos_theta_bins)
-                theta_hist += theta_hist
-    return cos_theta_bins, theta_hist
+                theta_hist.add(cos_t)
+    theta_hist.flush()
+    return theta_hist.bins, theta_hist.hist
 
 
 r0 = 1585.e-4
