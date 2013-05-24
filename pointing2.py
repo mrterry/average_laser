@@ -257,12 +257,8 @@ def iter_step_sizes(total, stride):
         yield left
 
 
-def get_hist():
-    r0 = 1585.e-4
-    R = 500.
-    nrays = 100
-    chunk_size = 50
-    with open('NIFPortConfig.dat') as f:
+def get_hist(r0, R, nrays, path, stride=10000):
+    with open(path) as f:
         pointings, rings_top, rings_bot, spots = get_pointing(f, r0)
 
 
@@ -278,7 +274,7 @@ def get_hist():
             lens = xyz(R, beam['theta'], beam['phi'])
             focus = xyz(r0, beam['theta_rp'], beam['phi_rp'])
 
-            for step in iter_step_sizes(nrays, chunk_size):
+            for step in iter_step_sizes(nrays, stride):
                 p, q = get_pq(lens, focus, XYI, nrays)
                 cos_t = cost(p, q, r0)
                 b, hist = np.histogram(cos_t, bins=cos_theta_bins)
@@ -286,7 +282,10 @@ def get_hist():
     return cos_theta_bins, theta_hist
 
 
-cos_theta_bins, theta_hist = get_hist()
+r0 = 1585.e-4
+R = 500.
+nrays = 200000
+cos_theta_bins, theta_hist = get_hist(r0, R, nrays, 'NIFPortConfig.dat')
 import pylab as plt
 plt.plot(cos_theta_bins[1:], theta_hist)
 plt.show()
