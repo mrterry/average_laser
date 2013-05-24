@@ -67,9 +67,11 @@ def parse(lines):
     return pointings, rings, spots, interp
 
 
-def get_pointing(f, r0):
-    with open('NIFPortConfig.dat') as f:
-        lines = f.readlines()
+def read_scheme(f, r0):
+    """
+    Read the pointing scheme from an open file handle
+    """
+    lines = f.readlines()
     pointings, rings, spots, interp = parse(lines)
 
     # split out top & bottom rings
@@ -90,7 +92,10 @@ def get_pointing(f, r0):
     return pointings, rings_top, rings_bot, spots
 
 
-def pdd_beam_pattern(r0, spot):
+def beam_pattern(r0, spot):
+    """
+    Compute the intensity pattern for a spot pointed at a target with radius r0
+    """
     x = 0.2 * np.linspace(-1, 1, 500)
     X, Y = np.meshgrid(x, x)
 

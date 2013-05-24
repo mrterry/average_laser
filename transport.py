@@ -3,7 +3,7 @@ from itertools import chain
 
 import pylab as plt
 
-from pdd_pointing import get_pointing, pdd_beam_pattern
+import draco
 
 
 def sample_beam_pattern(pattern_xyi, nrays):
@@ -33,13 +33,12 @@ def sample_beam_pattern(pattern_xyi, nrays):
     return focus
 
 
-def get_pq(lens_rtp, focus_rtp, far_pattern, nrays):
+def get_pq(lens_rtp, lens_hw, focus_rtp, far_pattern, nrays):
     """
     Get ray launch locations (p) and directions (q)
     far_pattern:
             the far-field intensity patter (at focal spot)
     """
-    lens_hw = 40./2
     p0 = np.zeros((nrays, 3))
     p0[:, 0] = np.random.uniform(low=-lens_hw, high=lens_hw, size=nrays)
     p0[:, 1] = np.random.uniform(low=-lens_hw, high=lens_hw, size=nrays)
@@ -63,7 +62,7 @@ def mag(a):
 
 
 def rotate(points, dtheta=0., dphi=0.):
-    """Rotate z-axis so that it goes through center"""
+    """Rotate z-axis by dtheta, then dphi"""
 
     # Rotation about y-axis
     Rtheta = np.zeros((3,3))
@@ -177,7 +176,9 @@ class IncrementalHist(object):
 
 def get_hist(r0, R, nrays, path, stride=10000):
     with open(path) as f:
-        pointings, rings_top, rings_bot, spots = get_pointing(f, r0)
+        pointings, rings_top, rings_bot, spots = draco.read_scheme(f, r0)
+
+    lens_hw = 40./2
 
     nbins = 200
     bins = np.linspace(0, np.pi/2, nbins+1)
@@ -188,61 +189,31 @@ def get_hist(r0, R, nrays, path, stride=10000):
 
     for spot, top_beam_ids, bot_beam_ids in zip(spots[:1], rings_top, rings_bot):
         print spot
-        XYI = pdd_beam_pattern(r0, spot)
+        XYI = draco.beam_pattern(r0, spot)
         for beam in chain(pointings[top_beam_ids], pointings[bot_beam_ids]):
-            #        for beam in pointings[top_beam_ids]:
             lens_rtp = R, beam['theta']*deg2rad, beam['phi']*deg2rad
             focus_rtp = r0, beam['theta_rp']*deg2rad, beam['phi_rp']*deg2rad
 
             for step in iter_step_sizes(nrays, stride):
-                p, q = get_pq(lens_rtp, focus_rtp, XYI, step)
+                p, q = get_pq(lens_rtp, lens_hw, focus_rtp, XYI, step)
                 cos_t = cost(p, q, r0)
                 theta_hist.add(cos_t)
     theta_hist.flush()
     return theta_hist.bins, theta_hist.hist
 
 
-def test1():
-    n = 200
-    p0 = np.zeros((n, 3))
-    p0[:, 1] = np.linspace(0, 1.1, n)
-    p0[:, 2] = 2.
-
-    deg = np.pi/180.
-    p0 = rotate(p0, dtheta=90*deg)
-
-    q = np.zeros((n, 3))
-    q[:, 0] = -1
-
-    p1 = p0 + 5*q
-
-    p0 = rotate(p0, dphi=45.*deg)
-    p1 = rotate(p1, dphi=45.*deg)
-
-    q = p0 - p1
-    q /= mag(q)[:, None]
-
-    plt.subplot(111, aspect='equal')
-    plt.plot(p0[:, 0], p0[:, 1], 'o')
-    plt.plot(p1[:, 0], p1[:, 1], 'o')
-    plt.show()
-
-
-def test2():
+def run():
     r0 = 1585.e-4
     R = 500.
     nrays = 200000
-
-#    plt.subplot(111, aspect='equal')
     bins, hist = get_hist(r0, R, nrays, 'NIFPortConfig.dat')
-#    plt.show()
 
-    plt.clf()
     hist = hist/float(sum(hist))
-    #t = np.arccos(bins[1:]) * 180./np.pi
     t = np.arccos(bins[1:])
     np.savez('ray_hist.npz', theta=t, hist=hist)
+
+    plt.clf()
     plt.plot(t, hist, 'o-')
     plt.show()
 
-test2()
+run()
