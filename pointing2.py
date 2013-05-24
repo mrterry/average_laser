@@ -135,11 +135,10 @@ def sample_beam_pattern(pattern_xyi, nrays):
     i, j = divmod(k, nj)
     dx = X[0, 1:] - X[0, :-1]
     dy = Y[1:, 0] - Y[:-1, 0]
-    rand = np.random.random((nrays,2))
 
     focus = np.zeros((nrays, 3))
-    focus[:, 0] = X[i,j] + rand[:,0]*dx[i]
-    focus[:, 1] = Y[i,j] + rand[:,1]*dy[j]
+    focus[:, 0] = X[i,j] + dx[j]*np.random.random(nrays)
+    focus[:, 1] = Y[i,j] + dy[i]*np.random.random(nrays)
     return focus
 
 
