@@ -115,7 +115,8 @@ def get_pointing(f, r0):
     return pointings, rings_top, rings_bot, spots
 
 
-def sample_beam_pattern(X, Y, I, nrays):
+def sample_beam_pattern(pattern_xyi, nrays):
+    X, Y, I = pattern_xyi
     I2 =  I[:-1, :-1].copy()
     I2 += I[:-1, 1:]
     I2 += I[1:, :-1]
@@ -158,8 +159,7 @@ def get_pq(lens, focus, far_pattern, nrays):
     p0[:, 2] = mag(lens)
     p0 = rotate(p0, lens)
 
-    x, y, I = far_pattern
-    p1 = sample_beam_pattern(x, y, I, nrays)
+    p1 = sample_beam_pattern(far_pattern, nrays)
     p1[:, 2] = mag(focus)
     p1 = rotate(p1, focus)
 
