@@ -202,10 +202,47 @@ def get_hist(r0, R, nrays, path, stride=10000):
     return theta_hist.bins, theta_hist.hist
 
 
-r0 = 1585.e-4
-R = 500.
-nrays = 200000
-cos_theta_bins, theta_hist = get_hist(r0, R, nrays, 'NIFPortConfig.dat')
-import pylab as plt
-plt.plot(cos_theta_bins[1:], theta_hist)
-plt.show()
+def test1():
+    n = 200
+    p0 = np.zeros((n, 3))
+    p0[:, 1] = np.linspace(0, 1.1, n)
+    p0[:, 2] = 2.
+
+    deg = np.pi/180.
+    p0 = rotate(p0, dtheta=90*deg)
+
+    q = np.zeros((n, 3))
+    q[:, 0] = -1
+
+    p1 = p0 + 5*q
+
+    p0 = rotate(p0, dphi=45.*deg)
+    p1 = rotate(p1, dphi=45.*deg)
+
+    q = p0 - p1
+    q /= mag(q)[:, None]
+
+    plt.subplot(111, aspect='equal')
+    plt.plot(p0[:, 0], p0[:, 1], 'o')
+    plt.plot(p1[:, 0], p1[:, 1], 'o')
+    plt.show()
+
+
+def test2():
+    r0 = 1585.e-4
+    R = 500.
+    nrays = 200000
+
+#    plt.subplot(111, aspect='equal')
+    bins, hist = get_hist(r0, R, nrays, 'NIFPortConfig.dat')
+#    plt.show()
+
+    plt.clf()
+    hist = hist/float(sum(hist))
+    #t = np.arccos(bins[1:]) * 180./np.pi
+    t = np.arccos(bins[1:])
+    np.savez('ray_hist.npz', theta=t, hist=hist)
+    plt.plot(t, hist, 'o-')
+    plt.show()
+
+test2()
