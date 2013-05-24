@@ -210,21 +210,34 @@ def cost(p, q, r):
     Given initial location (p), direction (q) and shell radius (r)
     return the cosine of the angle of incidence
     """
-    s = (p*q).sum(-1)
-    s2 = s*s
-    p2 = (p*p).sum(-1)
-    term = 1 - p2/s2 + r*r/s2
-    mask = term >= 0
+    p_mag = mag(p)
+    #pprint_points_rz(p, label='launch')
 
+    s = (p*q).sum(1)
+    mu = s / p_mag
+    disc = mu**2 - 1 + r**2/p_mag**2
+    mask = disc >= 0
+    print 'discarded %i / %i' % (sum(-mask), len(p))
+    #pprint_points_rz(p[mask], label='filtered')
+
+#    l_miss = -p[-mask, 0]/q[-mask, 0]
+#    p_miss = p[-mask] + l_miss[:, None]*q[-mask]
+#    pprint_lines(p[-mask], p_miss)
     s = s[mask]
-    term = np.sqrt(term[mask])
-    l = np.minimum(-s*(1+term), -s*(1-term))
-    cost = (l**2 + r**2 - p2[mask])/(2*l*r)
-    return cost
+    p_mag = p_mag[mask]
+    disc = disc[mask]
 
+    l1 = -s + p_mag * np.sqrt(disc)
+    l2 = -s - p_mag * np.sqrt(disc)
+    l = np.minimum(l1, l2)
 
-    p_x_q = np.cross(p, q)
-    return mag(p_x_q) / r
+    #p1 = p[mask] + l[:, None]*q[mask]
+    #pprint_points_rz(p1, label='impact')
+
+    ans = np.empty(len(p))
+    ans[mask] = -(s+l)/r
+    ans[-mask] = -5
+    return ans
 
 
 def xyz(r, t, p):
