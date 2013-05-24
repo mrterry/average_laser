@@ -192,6 +192,17 @@ def rotate(points, center):
     ans[:, 1] = r*sint*sinp
     ans[:, 2] = r*cosp
     return ans
+def pprint_points_rz(p, **kwargs):
+    r = mag(p[:, :2])
+    z = p[:, 2]
+    plt.plot(z, r, 'o', **kwargs)
+
+
+def pprint_lines(p0, p1):
+    r0 = mag(p0[:, :2])
+    r1 = mag(p1[:, :2])
+    for z0, rr0, z1, rr1 in zip(p0[:, 2], r0, p1[:, 2], r1):
+        plt.plot([z0, z1], [rr0, rr1])
 
 
 def cost(p, q, r):
