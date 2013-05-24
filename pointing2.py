@@ -257,6 +257,29 @@ def iter_step_sizes(total, stride):
         yield left
 
 
+class IncrementalHist(object):
+    def __init__(self, bins, buff_size):
+        self.bins = bins
+        self.buffer = np.zeros(buff_size)
+        self.hist = np.zeros(len(bins)-1)
+        self.loc = 0
+        self.end = len(self.buffer)
+
+    def add(self, data):
+        n = len(data)
+        if self.loc + n >= self.end:
+            self.flush()
+
+        self.buffer[self.loc:self.loc+n] = data[:]
+        self.loc += n
+
+    def flush(self):
+        if self.loc > 0:
+            h, b = np.histogram(self.buffer[:self.loc], bins=self.bins)
+            self.hist += h
+            self.loc = 0
+
+
 def get_hist(r0, R, nrays, path, stride=10000):
     with open(path) as f:
         pointings, rings_top, rings_bot, spots = get_pointing(f, r0)
