@@ -33,25 +33,24 @@ def sample_beam_pattern(pattern_xyi, nrays):
     return focus
 
 
-def get_pq(lens, focus, far_pattern, nrays):
+def get_pq(lens_rtp, focus_rtp, far_pattern, nrays):
     """
     Get ray launch locations (p) and directions (q)
     far_pattern:
             the far-field intensity patter (at focal spot)
     """
     lens_hw = 40./2
-    lens = np.array(lens)
-    focus = np.array(focus)
-
     p0 = np.zeros((nrays, 3))
-    p0[:, 0] = 2*lens_hw*np.random.random(nrays) - lens_hw
-    p0[:, 1] = 2*lens_hw*np.random.random(nrays) - lens_hw
-    p0[:, 2] = mag(lens)
-    p0 = rotate(p0, lens)
+    p0[:, 0] = np.random.uniform(low=-lens_hw, high=lens_hw, size=nrays)
+    p0[:, 1] = np.random.uniform(low=-lens_hw, high=lens_hw, size=nrays)
+    p0[:, 2] = lens_rtp[0]
+    theta, phi = lens_rtp[1:]
+    p0 = rotate(p0, dtheta=theta, dphi=phi)
 
     p1 = sample_beam_pattern(far_pattern, nrays)
-    p1[:, 2] = mag(focus)
-    p1 = rotate(p1, focus)
+    p1[:, 2] = focus_rtp[0]
+    theta_rp, phi_rp = focus_rtp[1:]
+    p1 = rotate(p1, dtheta=theta_rp, dphi=phi_rp)
 
     q = p1 - p0
     q /= mag(q)[:, None]
@@ -63,26 +62,31 @@ def mag(a):
     return np.sqrt((a*a).sum(-1))
 
 
-def rotate(points, center):
-    r = mag(points)
-    theta = np.arccos(points[:, 2]/r)
-    phi = np.arctan2(points[:, 1], points[:, 0])
+def rotate(points, dtheta=0., dphi=0.):
+    """Rotate z-axis so that it goes through center"""
 
-    rr = mag(center)
-    dt = np.arccos(center[2]/rr),
-    dp = np.arctan2(center[1], center[0])
+    # Rotation about y-axis
+    Rtheta = np.zeros((3,3))
+    ct, st = np.cos(dtheta), np.sin(dtheta)
+    Rtheta[0, 0] = ct
+    Rtheta[2, 0] = -st
+    Rtheta[1, 1] = 1.
+    Rtheta[0, 2] = st
+    Rtheta[2, 2] = ct
 
-    theta += dt
-    phi += dp
+    # rotation about z axix
+    Rphi = np.zeros((3,3))
+    cp, sp = np.cos(dphi), np.sin(dphi)
+    Rphi[0, 0] = cp
+    Rphi[1, 0] = sp
+    Rphi[0, 1] = -sp
+    Rphi[1, 1] = cp
+    Rphi[2, 2] = 1.
 
-    sint, cost = np.sin(theta), np.cos(theta)
-    sinp, cosp = np.sin(phi), np.cos(phi)
+    R = np.dot(Rphi, Rtheta)
+    return np.dot(R, points.T).T
 
-    ans = np.zeros_like(points)
-    ans[:, 0] = r*sint*cosp
-    ans[:, 1] = r*sint*sinp
-    ans[:, 2] = r*cosp
-    return ans
+
 def pprint_points_rz(p, **kwargs):
     r = mag(p[:, :2])
     z = p[:, 2]
